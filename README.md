@@ -1,10 +1,16 @@
 # TDN: Temporal Difference Networks for Efficient Action Recognition (CVPR 2021)
 
 ![1](https://github.com/MCG-NJU/TDN/blob/main/TDM.jpg)  
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/tdn-temporal-difference-networks-for/action-recognition-in-videos-on-something)](https://paperswithcode.com/sota/action-recognition-in-videos-on-something?p=tdn-temporal-difference-networks-for)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/tdn-temporal-difference-networks-for/action-recognition-in-videos-on-something-1)](https://paperswithcode.com/sota/action-recognition-in-videos-on-something-1?p=tdn-temporal-difference-networks-for)
+
 ## Overview
 We release the PyTorch code of the [TDN](https://arxiv.org/abs/2012.10071)(Temporal Difference Networks). This code is based on the [TSN](https://github.com/yjxiong/tsn-pytorch) and [TSM](https://github.com/mit-han-lab/temporal-shift-module) codebase. The core code to implement the Temporal Difference Module are `ops/base_module.py` and `ops/tdn_net.py`.
 
 **TL; DR.** We generalize the idea of RGB difference to devise an efficient temporal difference module (TDM) for motion modeling in videos, and provide an alternative to 3D convolutions by systematically presenting principled and detailed module design.
+
+**[Dec 1, 2021]**  We update the TDN-ResNet101 on **SSV2** in model zoo.
 
 **[Mar 5, 2021]**  TDN has been accepted by **CVPR 2021**.
 
@@ -30,7 +36,7 @@ The code is built with following libraries:
 
 ## Data Preparation
 We have successfully trained TDN on [Kinetics400](https://deepmind.com/research/open-source/kinetics), [UCF101](https://www.crcv.ucf.edu/data/UCF101.php), [HMDB51](https://serre-lab.clps.brown.edu/resource/hmdb-a-large-human-motion-database/), [Something-Something-V1](https://20bn.com/datasets/something-something/v1) and [V2](https://20bn.com/datasets/something-something/v2) with this codebase.  
-- The processing of Something-Something-V1 & V2 can be summarized into 3 steps:  
+- The processing of **Something-Something-V1 & V2** can be summarized into 3 steps:
     1. Extract frames from videos(you can use ffmpeg to get frames from video)      
     2. Generate annotations needed for dataloader ("<path_to_frames> <frames_num> <video_class>" in annotations) The annotation usually includes train.txt and val.txt. The format of *.txt file is like:
         ```
@@ -42,8 +48,9 @@ We have successfully trained TDN on [Kinetics400](https://deepmind.com/research/
         ```
     3. Add the information to `ops/dataset_configs.py`.
 
-- The processing of Kinetics400 can be summarized into 2 steps:  
-    1. Generate annotations needed for dataloader ("<path_to_video> <video_class>" in annotations) The annotation usually includes train.txt and val.txt. The format of *.txt file is like:
+- The processing of **Kinetics400** can be summarized into 3 steps:
+    1. We preprocess our data by resizing the short edge of video to 320px. You can refer to [MMAction2 Data Benchmark](https://github.com/open-mmlab/mmaction2) for [TSN](https://github.com/open-mmlab/mmaction2/tree/master/configs/recognition/tsn#kinetics-400-data-benchmark-8-gpus-resnet50-imagenet-pretrain-3-segments) and [SlowOnly](https://github.com/open-mmlab/mmaction2/tree/master/configs/recognition/slowonly#kinetics-400-data-benchmark).
+    2. Generate annotations needed for dataloader ("<path_to_video> <video_class>" in annotations) The annotation usually includes train.txt and val.txt. The format of *.txt file is like:
         ```
         dataset_root/video_1.mp4  label_1
         dataset_root/video_2.mp4  label_2
@@ -51,7 +58,10 @@ We have successfully trained TDN on [Kinetics400](https://deepmind.com/research/
         ...
         dataset_root/video_N.mp4  label_N
         ```
-    2. Add the information to `ops/dataset_configs.py`.
+    3. Add the information to `ops/dataset_configs.py`.
+
+    **Note**:
+    We use [decord](https://github.com/dmlc/decord) to decode the Kinetics videos **on the fly**.
 
 ## Model Zoo
 Here we provide some off-the-shelf [pretrained models](https://drive.google.com/drive/folders/18JslcTMTrjXJPn-I7Dnof1GKj4J6cOE1?usp=sharing). The accuracy might vary a little bit compared to the [paper]((https://arxiv.org/abs/2012.10071)), since the raw video of Kinetics downloaded by users may have some differences. 
@@ -68,7 +78,12 @@ Model  | Frames x Crops x Clips | Top-1  | Top-5 | checkpoint
 :--: | :--: | :--: | :--:| :--:
 TDN-ResNet50  | 8x1x1   | 64.0%   | 88.8%  | [link](https://drive.google.com/drive/folders/14pZ1W_Mh8nR4e1ziEz7AFpgbz-79HpIC?usp=sharing)
 TDN-ResNet50  | 16x1x1  | 65.3%   | 89.7%  | [link](https://drive.google.com/drive/folders/1AQOyCiRR9I50YIKHYc5E9q29J1ROe22A?usp=sharing)
-
+TDN-ResNet101  | 8x1x1   | 65.8%   | 90.2%  | [link](https://drive.google.com/drive/folders/1N4EojVdHFfNbEU_4WIkT_26d_mSHimmo?usp=sharing)
+ |  | 8x3x1   | 67.1%   | 90.5%  | -
+TDN-ResNet101  | 16x1x1  | 66.9%   | 90.9%  | [link](https://drive.google.com/file/d/1RBzJvE2tGZgnN8Yl4EGj2uFwMECTbIdn/view?usp=sharing)
+| | 16x3x1   | 68.2%   | 91.6%  | -
+TDN-ResNet101  | (8+16)x1x1  | 68.2%   |  91.6%  | -
+| | (8+16)x3x1   | 69.6%   | 92.2%  | -
 #### Kinetics400
 Model  | Frames x Crops x Clips   | Top-1 (30 view)  | Top-5 (30 view)  | checkpoint
 :--: | :--: | :--: | :--:| :--:
@@ -117,6 +132,9 @@ This implementation supports multi-gpu, `DistributedDataParallel` training, whic
             --lr_scheduler step  --lr_steps 50 75 90 --epochs 100 --batch-size 16 \
             --wd 1e-4 --dropout 0.5 --consensus_type=avg --eval-freq=1 -j 4 --npb 
     ```
+## Contact
+tongzhan@smail.nju.edu.cn
+
 ## Acknowledgements
 We especially thank the contributors of the [TSN](https://github.com/yjxiong/tsn-pytorch) and [TSM](https://github.com/mit-han-lab/temporal-shift-module) codebase for providing helpful code.
 ## License
@@ -124,11 +142,13 @@ This repository is released under the Apache-2.0. license as found in the [LICEN
 ## Citation
 If you think our work is useful, please feel free to cite our paper 😆 :
 ```
-@article{wang2020tdn,
-      title={TDN: Temporal Difference Networks for Efficient Action Recognition}, 
-      author={Limin Wang and Zhan Tong and Bin Ji and Gangshan Wu},
-      journal={arXiv preprint arXiv:2012.10071},
-      year={2020}
+@InProceedings{Wang_2021_CVPR,
+    author    = {Wang, Limin and Tong, Zhan and Ji, Bin and Wu, Gangshan},
+    title     = {TDN: Temporal Difference Networks for Efficient Action Recognition},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2021},
+    pages     = {1895-1904}
 }
 ```
 

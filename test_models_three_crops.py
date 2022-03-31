@@ -81,7 +81,7 @@ def accuracy(output, target, topk=(1,)):
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     res = []
     for k in topk:
-         correct_k = correct[:k].view(-1).float().sum(0)
+         correct_k = correct[:k].reshape(-1).float().sum(0)
          res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
@@ -116,17 +116,20 @@ for this_weights, this_test_segments, test_file, modality, this_arch in zip(weig
               pretrain=args.pretrain
               )
     checkpoint = torch.load(this_weights)
-    checkpoint = checkpoint['state_dict']
+    try:
+        net.load_state_dict(checkpoint['state_dict'])
+    except:
+        checkpoint = checkpoint['state_dict']
 
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint.items())}
-    replace_dict = {'base_model.classifier.weight': 'new_fc.weight',
-                    'base_model.classifier.bias': 'new_fc.bias',
-                    }
-    for k, v in replace_dict.items():
-        if k in base_dict:
-            base_dict[v] = base_dict.pop(k)
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint.items())}
+        replace_dict = {'base_model.classifier.weight': 'new_fc.weight',
+                        'base_model.classifier.bias': 'new_fc.bias',
+                        }
+        for k, v in replace_dict.items():
+            if k in base_dict:
+                base_dict[v] = base_dict.pop(k)
 
-    net.load_state_dict(base_dict)
+        net.load_state_dict(base_dict)
 
     input_size = net.scale_size if args.full_res else net.input_size
     if args.test_crops == 1:
